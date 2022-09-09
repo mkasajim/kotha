@@ -25,7 +25,7 @@ restService.post("/question", async function(req, res) {
     req.body.queryResult &&
     req.body.queryResult.parameters &&
     req.body.queryResult.parameters.questionText
-      ? req.body.queryResult.parameters.questionText
+      ? "Human: " + req.body.queryResult.parameters.questionText + "\nKotha: "
       : "Seems like some problem. Speak again.";
 
       const response = await openai.createCompletion({
