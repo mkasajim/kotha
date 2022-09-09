@@ -1,0 +1,14 @@
+{
+  "name": "Kotha",
+  "version": "1.0.0",
+  "description": "Empower Google Assistant with GPT3",
+  "main": "app.js",
+  "scripts": {
+    "start": "node app.js"
+  },
+  "author": "MK Sajim",
+  "dependencies": {
+    "body-parser": "^1.15.0",
+    "express": "^4.13.4"
+  }
+}
