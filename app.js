@@ -3,6 +3,13 @@
 const express = require("express");
 const bodyParser = require("body-parser");
 
+const { Configuration, OpenAIApi } = require("openai");
+
+const configuration = new Configuration({
+  apiKey: process.env.OPENAI_API_KEY,
+});
+const openai = new OpenAIApi(configuration);
+
 const restService = express();
 
 restService.use(
@@ -13,14 +20,25 @@ restService.use(
 
 restService.use(bodyParser.json());
 
-restService.post("/question", function(req, res) {
-  var speech =
+restService.post("/question", async function(req, res) {
+  var question =
     req.body.queryResult &&
     req.body.queryResult.parameters &&
     req.body.queryResult.parameters.questionText
       ? req.body.queryResult.parameters.questionText
       : "Seems like some problem. Speak again.";
-  
+
+      const response = await openai.createCompletion({
+        model: "text-davinci-002",
+        prompt: question,
+        temperature: 0.3,
+        max_tokens: 750,
+        top_p: 1,
+        frequency_penalty: 0,
+        presence_penalty: 0,
+      });
+  var speech = response.data.choices[0].text;
+
   var speechResponse = {
     google: {
       expectUserResponse: true,
