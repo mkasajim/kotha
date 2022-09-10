@@ -1,27 +1,41 @@
-const sqlite3 = require('sqlite3').verbose();
+const mysql = require('mysql');
 
 var sql;
-
+// Connection details
+const db = mysql.createConnection({
+    host: "kotha.mysql.database.azure.com",
+    user: "mkas@kotha",
+    password: "Kawsar@123456",
+    database: "kotha"
+  });
 // Connect to DB
-const db = new sqlite3.Database('./context.db', sqlite3.OPEN_READWRITE, (err) => {
-    if(err) return console.error(err.message);
-})
+db.connect(function(err) {
+    if (err) throw err;
+    console.log("Connected!");
+  });
+//Create Database
+/*sql = `CREATE DATABASE kotha`;
+db.query(sql, function (err, result) {
+    if (err) throw err;
+    console.log("Database created");
+  });
+  */
 // Create a Table
-/*sql = `CREATE TABLE conversation(id INTEGER PRIMARY KEY, user, kotha)`;
+//sql = `CREATE TABLE conversation(id INTEGER PRIMARY KEY, user VARCHAR(1024), kotha VARCHAR(1024))`;
 
-db.run(sql);
-*/
+//db.query(sql);
+
 //DROP Table
 //db.run("DROP TABLE conversation");
 
 // INSERT Data
-/*sql = `INSERT INTO conversation(user,kotha) VALUES(?,?)`;
-db.run(sql,
+sql = `INSERT INTO conversation(user,kotha) VALUES(?,?)`;
+db.query(sql,
     ["Who is Muhammad (sm)?","He is the last prophet (sm) of Islam"],
     (err) => {
     if(err) return console.error(err.message);
 });
-*/
+
 //UPDATE Data
 /*sql = `UPDATE conversation SET user = ? WHERE id = ?`;
 db.run(sql,
@@ -42,12 +56,15 @@ db.run(sql,
 */
 // Query the data
 //sql = `SELECT user,kotha FROM conversation`;
+
 sql = `select * from conversation
   where id > 
   ( (select COUNT(*) from conversation) - 5)`  // Get the last 5 conversation
-db.all(sql, [], (err, rows) => {
+db.query(sql, [], (err, rows) => {
     if(err) return console.error(err.message);
     rows.forEach(row => {
         console.log("User: " + row.user + "\n"+ "Kotha: " + row.kotha);
     });
 });
+
+db.end()

@@ -2,14 +2,23 @@
 
 const express = require("express");
 const bodyParser = require("body-parser");
-const sqlite3 = require('sqlite3').verbose();
 const { Configuration, OpenAIApi } = require("openai");
 
+const mysql = require('mysql');
+
 var sql;
+// Connection details
+const db = mysql.createConnection({
+    host: "kotha.mysql.database.azure.com",
+    user: "mkas@kotha",
+    password: "Kawsar@123456",
+    database: "kotha"
+  });
 // Connect to DB
-const db = new sqlite3.Database('./context.db', sqlite3.OPEN_READWRITE, (err) => {
-  if(!err) return console.log("Connected to db");
-});
+db.connect(function(err) {
+    if (err) throw err;
+    console.log("Connected!");
+  });
 
 const configuration = new Configuration({
   apiKey: process.env.OPENAI_API_KEY,
@@ -40,7 +49,7 @@ restService.post("/question", async function(req, res) {
   sql = `select * from conversation
   where id > 
   ( (select COUNT(*) from conversation) - 5)`  // Get the last 5 conversation
-  db.all(sql, [], (err, rows) => {
+  db.query(sql, [], (err, rows) => {
     if(err) return console.error(err.message);
     rows.forEach(row => {
         console.log(row.user+"\n"+row.kotha);
@@ -62,7 +71,7 @@ restService.post("/question", async function(req, res) {
   console.log(prompt + speech); //For debugging
 //INSERT new Conversation
 sql = `INSERT INTO conversation(user,kotha) VALUES(?,?)`;
-db.run(sql,
+db.query(sql,
     [question,speech],
     (err) => {
     if(err) return console.error(err.message);
