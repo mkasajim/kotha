@@ -6,19 +6,6 @@ const { Configuration, OpenAIApi } = require("openai");
 
 const mysql = require('mysql');
 
-var sql;
-// Connection details
-const db = mysql.createConnection({
-    host: process.env.HOST,
-    user: process.env.USER,
-    password: process.env.PASSWORD,
-    database: process.env.DB_NAME
-  });
-// Connect to DB
-db.connect(function(err) {
-    if (err) throw err;
-    console.log("Connected!");
-  });
 
 const configuration = new Configuration({
   apiKey: process.env.OPENAI_API_KEY,
@@ -43,6 +30,19 @@ restService.post("/question", async function(req, res) {
       ? req.body.queryResult.parameters.questionText
       : "Seems like some problem. Speak again.";
 
+  var sql;
+  // Connection details
+  const db = mysql.createConnection({
+      host: process.env.HOST,
+      user: process.env.USER,
+      password: process.env.PASSWORD,
+      database: process.env.DB_NAME
+    });
+  // Connect to DB
+  db.connect(function(err) {
+      if (err) throw err;
+      console.log("Connected!");
+    });
   var prompt = "";
   // GET Previous Conversation
   //sql = `SELECT user,kotha FROM conversation`;
