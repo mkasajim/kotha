@@ -3,10 +3,10 @@ const mysql = require('mysql');
 var sql;
 // Connection details
 const db = mysql.createConnection({
-    host: "kotha.mysql.database.azure.com",
-    user: "mkas@kotha",
-    password: "Kawsar@123456",
-    database: "kotha"
+    host: process.env.HOST,
+    user: process.env.USER,
+    password: process.env.PASSWORD,
+    database: process.env.DB_NAME
   });
 // Connect to DB
 db.connect(function(err) {
@@ -29,13 +29,13 @@ db.query(sql, function (err, result) {
 //db.run("DROP TABLE conversation");
 
 // INSERT Data
-sql = `INSERT INTO conversation(user,kotha) VALUES(?,?)`;
+/*sql = `INSERT INTO conversation(user,kotha) VALUES(?,?)`;
 db.query(sql,
     ["Who is Muhammad (sm)?","He is the last prophet (sm) of Islam"],
     (err) => {
     if(err) return console.error(err.message);
 });
-
+*/
 //UPDATE Data
 /*sql = `UPDATE conversation SET user = ? WHERE id = ?`;
 db.run(sql,
@@ -48,7 +48,7 @@ db.run(sql,
 // DELETE Data
 /*
 sql = `DELETE FROM conversation WHERE id >= ?`;
-db.run(sql,
+db.query(sql,
     [0],
     (err) => {
     if(err) return console.error(err.message);

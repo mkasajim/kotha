@@ -9,10 +9,10 @@ const mysql = require('mysql');
 var sql;
 // Connection details
 const db = mysql.createConnection({
-    host: "kotha.mysql.database.azure.com",
-    user: "mkas@kotha",
-    password: "Kawsar@123456",
-    database: "kotha"
+    host: process.env.HOST,
+    user: process.env.USER,
+    password: process.env.PASSWORD,
+    database: process.env.DB_NAME
   });
 // Connect to DB
 db.connect(function(err) {
