@@ -8,8 +8,9 @@
   },
   "author": "MK Sajim",
   "dependencies": {
-    "openai": "^3.0.0",
     "body-parser": "^1.15.0",
-    "express": "^4.13.4"
+    "express": "^4.13.4",
+    "openai": "^3.0.0",
+    "sqlite3": "^5.0.11"
   }
 }
