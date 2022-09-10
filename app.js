@@ -43,7 +43,7 @@ restService.post("/question", async function(req, res) {
   db.all(sql, [], (err, rows) => {
     if(err) return console.error(err.message);
     rows.forEach(row => {
-        //console.log(row.user+"\n"+row.kotha);
+        console.log(row.user+"\n"+row.kotha);
         prompt = "User: " + row.user + "\n"+ "Kotha: " + row.kotha + "\n";
     });
   });
