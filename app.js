@@ -2,8 +2,14 @@
 
 const express = require("express");
 const bodyParser = require("body-parser");
-
+const sqlite3 = require('sqlite3').verbose();
 const { Configuration, OpenAIApi } = require("openai");
+
+var sql;
+// Connect to DB
+const db = new sqlite3.Database('./context.db', sqlite3.OPEN_READWRITE, (err) => {
+  if(err) return console.error(err.message);
+});
 
 const configuration = new Configuration({
   apiKey: process.env.OPENAI_API_KEY,
@@ -25,20 +31,42 @@ restService.post("/question", async function(req, res) {
     req.body.queryResult &&
     req.body.queryResult.parameters &&
     req.body.queryResult.parameters.questionText
-      ? "Human: " + req.body.queryResult.parameters.questionText + "\nKotha: "
+      ? req.body.queryResult.parameters.questionText
       : "Seems like some problem. Speak again.";
 
-      const response = await openai.createCompletion({
-        model: "text-davinci-002",
-        prompt: question,
-        temperature: 0.3,
-        max_tokens: 750,
-        top_p: 1,
-        frequency_penalty: 0,
-        presence_penalty: 0,
-      });
-  var speech = response.data.choices[0].text;
+  var prompt = "";
+  // GET Previous Conversation
+  //sql = `SELECT user,kotha FROM conversation`;
+  sql = `select * from conversation
+  where id > 
+  ( (select COUNT(*) from conversation) - 5)`  // Get the last 5 conversation
+  db.all(sql, [], (err, rows) => {
+    if(err) return console.error(err.message);
+    rows.forEach(row => {
+        //console.log(row.user+"\n"+row.kotha);
+        prompt = "User: " + row.user + "\n"+ "Kotha: " + row.kotha + "\n";
+    });
+  });
+  prompt = prompt+ "User: " +question + "\nKotha: ";
 
+  const response = await openai.createCompletion({
+    model: "text-davinci-002",
+    prompt: prompt,
+    temperature: 0.3,
+    max_tokens: 750,
+    top_p: 1,
+    frequency_penalty: 0,
+    presence_penalty: 0,
+  });
+  var speech = response.data.choices[0].text;
+  console.log(prompt + speech); //For debugging
+//INSERT new Conversation
+sql = `INSERT INTO conversation(user,kotha) VALUES(?,?)`;
+db.run(sql,
+    [question,speech],
+    (err) => {
+    if(err) return console.error(err.message);
+});
   var speechResponse = {
     google: {
       expectUserResponse: true,
