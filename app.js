@@ -8,7 +8,7 @@ const { Configuration, OpenAIApi } = require("openai");
 var sql;
 // Connect to DB
 const db = new sqlite3.Database('./context.db', sqlite3.OPEN_READWRITE, (err) => {
-  if(err) return console.error(err.message);
+  if(!err) return console.log("Connected to db");
 });
 
 const configuration = new Configuration({
