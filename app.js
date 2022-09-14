@@ -1,12 +1,45 @@
-"use strict";
+//"use strict";
 
 const express = require("express");
 const bodyParser = require("body-parser");
+const fs = require("fs");
 const { Configuration, OpenAIApi } = require("openai");
+//var module = require("./init");
 
-const mysql = require('mysql');
+// Some functions
+const readLog = filename =>
+   fs.readFileSync(filename)
+   .toString('UTF8');
 
+function updateLog(log, question, speech){
+  let pLog = log;
+  let cLog = "";
+  if(pLog === "" || pLog === null || pLog === 'undefined'){
+      cLog = "Human: " + question.trim() + "\n" + "Kotha: " + speech.trim();
+    }
+  else{
+      cLog = pLog.trim() + '\n' + "Human: " + question.trim() + "\n" + "Kotha: " + speech.trim();
+    }
+  fs.writeFile("./log.txt", cLog, (err) => {
+    if (err) console.log(err);
+        console.log("Successfully Written to File.");
+    });
+}
 
+function generatePrompt(log, question){
+  let pLog = log;
+  let prompt = "";
+  let introduction = "This is a cenversation between an AI and a human. The AI's name is Kotha. She was developed by Md Kawsar Ali, a student of Pharmacy at BSMRSTU. She is very intelligent, friendly and helpful.";
+  if(pLog === "" || pLog === null || pLog === 'undefined'){
+      prompt = introduction + "\n\n"  + "User: " + question + "\n" + "Kotha: "; 
+  }
+  else{
+      prompt = introduction + "\n\n" + log.trim() + "\n" + "User: " + question + "\n" + "Kotha: ";
+  }
+  return prompt;
+}
+
+   //Main code
 const configuration = new Configuration({
   apiKey: process.env.OPENAI_API_KEY,
 });
@@ -30,33 +63,11 @@ restService.post("/question", async function(req, res) {
       ? req.body.queryResult.parameters.questionText
       : "Seems like some problem. Speak again.";
 
-  var sql;
-  // Connection details
-  const db = mysql.createConnection({
-      host: process.env.HOST,
-      user: process.env.USER,
-      password: process.env.PASSWORD,
-      database: process.env.DB_NAME
-    });
-  // Connect to DB
-  db.connect(function(err) {
-      if (err) throw err;
-      console.log("Connected!");
-    });
+  
   var prompt = "";
   // GET Previous Conversation
-  //sql = `SELECT user,kotha FROM conversation`;
-  sql = `select * from conversation
-  where id > 
-  ( (select COUNT(*) from conversation) - 5)`  // Get the last 5 conversation
-  db.query(sql, [], (err, rows) => {
-    if(err) return console.error(err.message);
-    rows.forEach(row => {
-        //console.log(row.user+"\n"+row.kotha);
-        prompt = "User: " + row.user + "\n"+ "Kotha: " + row.kotha + "\n";
-    });
-  });
-  prompt = prompt+ "User: " +question + "\nKotha: ";
+  let log = readLog("./log.txt");
+  prompt = generatePrompt(log, question);
 
   const response = await openai.createCompletion({
     model: "text-davinci-002",
@@ -68,15 +79,9 @@ restService.post("/question", async function(req, res) {
     presence_penalty: 0,
   });
   var speech = response.data.choices[0].text;
-  console.log(prompt + speech); //For debugging
+  console.log(prompt + speech.trim()); //For debugging
 //INSERT new Conversation
-sql = `INSERT INTO conversation(user,kotha) VALUES(?,?)`;
-db.query(sql,
-    [question,speech],
-    (err) => {
-    if(err) return console.error(err.message);
-});
-db.end()
+  updateLog(log, question, speech);
   var speechResponse = {
     google: {
       expectUserResponse: true,
@@ -100,6 +105,13 @@ db.end()
     displayText: speech,
     source: "webhook-question-sample"
   });
+});
+
+// DEBUG TIME
+
+restService.get("/log", function(){
+  let abc = readLog("./log.txt");
+  console.log(abc);
 });
 
 restService.post("/audio", function(req, res) {
